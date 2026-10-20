@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Moon | Papelería & Bonetería</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsPDF CDN para la generación de facturas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- QRCode.js CDN para el código QR fiscal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        moon: {
+                            50: '#fdfbf7',
+                            100: '#f7f2e8',
+                            200: '#eedfbe',
+                            500: '#b8944d',
+                            700: '#8c6827',
+                            800: '#2c3540',
+                            900: '#1a202c'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-moon-50 text-gray-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="bg-white border-b border-moon-100 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="showSection('catalog')">
+                    <i class="fa-solid fa-moon text-moon-500 text-2xl"></i>
+                    <span class="font-bold text-2xl tracking-wider text-moon-800">Paper Moon</span>
+                </div>
+
+                <!-- Enlaces y Acciones -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="showSection('catalog')" class="text-gray-600 hover:text-moon-500 font-medium px-2 py-1">Catálogo</button>
+                    <button onclick="showSection('favorites')" class="text-gray-600 hover:text-moon-500 font-medium px-2 py-1 relative">
+                        <i class="fa-regular fa-heart text-xl"></i>
+                        <span id="fav-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                    </button>
+                    <button onclick="toggleCartModal()" class="text-gray-600 hover:text-moon-500 font-medium px-2 py-1 relative">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span id="cart-count" class="absolute -top-1 -right-1 bg-moon-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- Estado de Usuario -->
+                    <div id="user-nav" class="flex items-center space-x-2 border-l pl-4 border-gray-200">
+                        <button onclick="showSection('login')" class="bg-moon-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-moon-900 transition">Iniciar Sesión</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- 1. SECCIÓN: CATÁLOGO DE PRODUCTOS -->
+        <section id="sec-catalog" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-moon-100">
+                <div>
+                    <h1 class="text-3xl font-bold text-moon-800">Papelería bonita y funcional</h1>
+                    <p class="text-gray-500 mt-1">Encuentra libretas, agendas, organizadores y más para acompañar tus ideas.</p>
+                </div>
+                <!-- Filtros -->
+                <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                    <button onclick="filterCategory('todos')" class="px-4 py-2 rounded-full text-sm font-medium bg-moon-800 text-white shadow-sm hover:opacity-95 transition whitespace-nowrap">Todos</button>
+                    <button onclick="filterCategory('Libretas y cuadernos')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Libretas y cuadernos</button>
+                    <button onclick="filterCategory('Agendas y planificadores')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Agendas</button>
+                    <button onclick="filterCategory('Plumas y lápices')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Plumas y lápices</button>
+                    <button onclick="filterCategory('Resaltadores')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Resaltadores</button>
+                    <button onclick="filterCategory('Stickers y washi tape')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Stickers & Washi</button>
+                    <button onclick="filterCategory('Paquetes escolares')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Kits escolares</button>
+                </div>
+            </div>
+
+            <!-- Recomendaciones Personalizadas -->
+            <div id="recommendations-box" class="bg-amber-50 border border-amber-200 rounded-xl p-4 hidden">
+                <h3 class="font-bold text-amber-900 mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Recomendado para ti (Basado en usuarios que compraron artículos similares)</h3>
+                <div id="recommendations-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Grilla de Productos -->
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+        <!-- 2. SECCIÓN: DETALLE DE PRODUCTO -->
+        <section id="sec-product-detail" class="hidden space-y-8">
+            <button onclick="showSection('catalog')" class="text-sm font-medium text-moon-700 hover:underline"><i class="fa-solid fa-arrow-left"></i> Volver al catálogo</button>
+            <div id="product-detail-content" class="bg-white rounded-2xl shadow-sm border border-moon-100 p-6 md:p-8"></div>
+        </section>
+
+        <!-- 3. SECCIÓN: FAVORITOS -->
+        <section id="sec-favorites" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-moon-800">Mis Favoritos</h2>
+            <div id="favorites-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+        <!-- 4. SECCIÓN: LOGIN / REGISTRO / RECUPERAR -->
+        <section id="sec-login" class="hidden max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-moon-100 space-y-6">
+            <div class="flex border-b border-gray-200">
+                <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-2 font-bold text-moon-800 border-b-2 border-moon-800">Iniciar Sesión</button>
+                <button id="tab-register-btn" onclick="switchAuthTab('register')" class="w-1/2 py-2 text-gray-500 font-bold border-b-2 border-transparent">Registrarse</button>
+            </div>
+
+            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <input type="email" id="login-email" required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-moon-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="login-password" required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-moon-500 outline-none">
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <button type="button" onclick="showRecoveryModal()" class="text-moon-700 hover:underline">¿Olvidaste tu contraseña?</button>
+                </div>
+                <button type="submit" class="w-full bg-moon-800 text-white py-3 rounded-lg font-bold hover:bg-moon-900 transition">Entrar</button>
+                <div class="bg-gray-50 p-3 rounded-lg text-xs text-gray-600 mt-4 space-y-1">
+                    <p class="font-bold">Cuentas de acceso directo:</p>
+                    <p>• <b>Cliente:</b> <code>cliente@papermoon.com</code> / <code>123456</code></p>
+                    <p>• <b>Administrador:</b> <code>admin@papermoon.com</code> / <code>admin123</code></p>
+                </div>
+            </form>
+
+            <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                    <input type="text" id="reg-name" required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-moon-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <input type="email" id="reg-email" required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-moon-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="reg-password" required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-moon-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-moon-800 text-white py-3 rounded-lg font-bold hover:bg-moon-900 transition">Crear Cuenta</button>
+            </form>
+        </section>
+
+        <!-- 5. SECCIÓN: PANEL DE ADMINISTRADOR -->
+        <section id="sec-admin" class="hidden space-y-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-moon-100">
+                <div>
+                    <h2 class="text-2xl font-bold text-moon-800">Panel de Administración</h2>
+                    <p class="text-sm text-gray-500">Gestión de inventarios, productos, historial de compras y preguntas</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="addNewProductPrompt()" class="bg-moon-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-moon-900"><i class="fa-solid fa-plus"></i> Agregar Producto</button>
+                    <button onclick="resetStoreData()" class="bg-rose-100 text-rose-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-rose-200"><i class="fa-solid fa-rotate-right"></i> Restaurar Tienda</button>
+                </div>
+            </div>
+
+            <!-- TABLA DE INVENTARIO Y ELIMINACIÓN -->
+            <div class="bg-white rounded-2xl shadow-sm border border-moon-100 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b font-bold text-gray-800">Control de Inventarios y Productos</div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-600">
+                        <thead class="bg-gray-100 text-gray-800 uppercase text-xs font-bold">
+                            <tr>
+                                <th class="p-4">Producto</th>
+                                <th class="p-4">Categoría</th>
+                                <th class="p-4">Precio</th>
+                                <th class="p-4">Stock</th>
+                                <th class="p-4">Estado</th>
+                                <th class="p-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-stock-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- COMPRAS DE CLIENTES -->
+            <div class="bg-white rounded-2xl shadow-sm border border-moon-100 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b font-bold text-gray-800">Historial de Compras de Clientes</div>
+                <div class="p-4 space-y-4" id="admin-orders-list"></div>
+            </div>
+
+            <!-- PREGUNTAS PENDIENTES -->
+            <div class="bg-white rounded-2xl shadow-sm border border-moon-100 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b font-bold text-gray-800">Preguntas de Clientes por Responder</div>
+                <div class="p-4 space-y-4" id="admin-qa-list"></div>
+            </div>
+        </section>
+
+        <!-- 6. SECCIÓN: CHECKOUT -->
+        <section id="sec-checkout" class="hidden max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-moon-100 space-y-6">
+            <h2 class="text-2xl font-bold text-moon-800 border-b pb-4">Simulación de Compra</h2>
+            
+            <form onsubmit="handleCheckoutSubmit(event)" class="space-y-6">
+                <div>
+                    <label class="block font-bold text-gray-800 mb-2">1. Método de Envío</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="shipping" value="Estándar ($99 MXN)" checked class="text-moon-500">
+                            <span class="ml-3 font-medium text-sm">Envío Estándar (3 a 5 días hábiles) - $99 MXN</span>
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="shipping" value="Exprés ($180 MXN)" class="text-moon-500">
+                            <span class="ml-3 font-medium text-sm">Envío Exprés (24 a 48 horas) - $180 MXN</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-800 mb-2">2. Método de Pago</label>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
+                            <input type="radio" name="payment" value="Tarjeta de crédito" checked onclick="togglePaymentFields('card')" class="mr-2"> Tarjeta Crédito
+                        </label>
+                        <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
+                            <input type="radio" name="payment" value="Tarjeta de débito" onclick="togglePaymentFields('card')" class="mr-2"> Tarjeta Débito
+                        </label>
+                        <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
+                            <input type="radio" name="payment" value="Apple Pay" onclick="togglePaymentFields('express')" class="mr-2"><i class="fa-brands fa-apple text-lg mr-1"></i> Apple Pay
+                        </label>
+                        <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium">
+                            <input type="radio" name="payment" value="Google Pay" onclick="togglePaymentFields('express')" class="mr-2"><i class="fa-brands fa-google text-lg mr-1"></i> Google Pay
+                        </label>
+                    </div>
+
+                    <div id="card-fields" class="space-y-3 bg-gray-50 p-4 rounded-xl border">
+                        <input type="text" placeholder="Número de Tarjeta (4111 ....)" required class="w-full p-2 border rounded-lg text-sm">
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="MM/AA" required class="w-1/2 p-2 border rounded-lg text-sm">
+                            <input type="text" placeholder="CVV" required class="w-1/2 p-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4 space-y-2 text-sm">
+                    <div class="flex justify-between text-gray-600"><span>Subtotal:</span><span id="checkout-subtotal">$0 MXN</span></div>
+                    <div class="flex justify-between font-bold text-lg text-moon-800"><span>Total:</span><span id="checkout-total">$0 MXN</span></div>
+                </div>
+
+                <button type="submit" class="w-full bg-moon-800 text-white py-3 rounded-lg font-bold hover:bg-moon-900 transition">Finalizar Compra</button>
+            </form>
+        </section>
+
+        <!-- 7. SECCIÓN: POLÍTICAS -->
+        <section id="sec-policies" class="hidden max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-moon-100 space-y-4">
+            <h2 class="text-2xl font-bold text-moon-800">Políticas de Devolución y Reembolso</h2>
+            <p class="text-gray-600">En Paper Moon queremos que quedes totalmente satisfecho/a con tus productos. Si necesitas realizar una devolución, ten en cuenta lo siguiente:</p>
+            <ul class="list-disc pl-5 space-y-2 text-gray-600 text-sm">
+                <li><strong>Plazo:</strong> Tienes hasta 30 días naturales posteriores a la entrega de tu pedido.</li>
+                <li><strong>Estado del producto:</strong> El artículo debe encontrarse completamente nuevo y en su empaque original.</li>
+                <li><strong>Procedimiento:</strong> Envía un correo a <code>devoluciones@papermoon.com</code> con tu número de orden. Te responderemos en menos de 24 horas.</li>
+            </ul>
+        </section>
+    </main>
+
+    <!-- FOOTER Y REDES SOCIALES (CON ÍCONO X / TWITTER CORREGIDO) -->
+    <footer class="bg-moon-800 text-white py-10 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-gray-700 pb-6">
+                <div>
+                    <h3 class="text-xl font-bold">Paper Moon</h3>
+                    <p class="text-gray-400 text-sm">Tu papelería favorita en línea.</p>
+                </div>
+                
+                <!-- Redes Sociales (Incluyendo X / Twitter con SVG garantizado) -->
+                <div class="flex items-center space-x-6 text-xl">
+                    <a href="https://instagram.com" target="_blank" class="hover:text-amber-400 transition" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://facebook.com" target="_blank" class="hover:text-amber-400 transition" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="https://whatsapp.com" target="_blank" class="hover:text-amber-400 transition" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                    <!-- Ícono X (Twitter) garantizado mediante SVG -->
+                    <a href="https://x.com" target="_blank" class="hover:text-amber-400 transition flex items-center" title="X (Twitter)">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="https://tiktok.com" target="_blank" class="hover:text-amber-400 transition" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400">
+                <p>&copy; 2026 Paper Moon. Todos los derechos reservados.</p>
+                <button onclick="showSection('policies')" class="hover:underline mt-2 sm:mt-0">Políticas de Devolución</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DE CARRITO -->
+    <div id="modal-cart" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end hidden">
+        <div class="bg-white w-full max-w-md h-full p-6 flex flex-col justify-between shadow-xl">
+            <div>
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h3 class="font-bold text-xl text-moon-800">Tu Carrito</h3>
+                    <button onclick="toggleCartModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+                </div>
+                <div id="cart-items-list" class="mt-4 space-y-4 max-h-[60vh] overflow-y-auto"></div>
+            </div>
+            <div class="border-t pt-4 space-y-4">
+                <div class="flex justify-between text-lg font-bold">
+                    <span>Subtotal:</span>
+                    <span id="cart-total-modal">$0 MXN</span>
+                </div>
+                <button onclick="proceedToCheckout()" class="w-full bg-moon-800 text-white py-3 rounded-lg font-bold hover:bg-moon-900 transition">Procesar Compra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE RECUPERACIÓN -->
+    <div id="modal-recovery" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl relative">
+            <button onclick="closeRecoveryModal()" class="absolute top-4 right-4 text-gray-400 text-xl">&times;</button>
+            <h3 class="text-xl font-bold text-moon-800">Recuperar Contraseña</h3>
+            <p class="text-sm text-gray-600">Ingresa tu correo registrado para enviarte las instrucciones.</p>
+            <form onsubmit="handleRecoverySubmit(event)" class="space-y-4">
+                <input type="email" id="recovery-email" placeholder="tu-correo@ejemplo.com" required class="w-full p-2.5 border rounded-lg text-sm">
+                <button type="submit" class="w-full bg-moon-800 text-white py-2.5 rounded-lg font-bold hover:bg-moon-900">Enviar Correo de Recuperación</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FACTURA / QR -->
+    <div id="modal-invoice-prompt" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md text-center space-y-4 shadow-2xl">
+            <div class="text-amber-500 text-4xl"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <h3 class="text-xl font-bold text-moon-800">¡Compra Exitosa!</h3>
+            <p class="text-sm text-gray-600">¿Deseas generar una factura electrónica en PDF con Código QR para esta transacción?</p>
+            <div class="flex gap-3 pt-2">
+                <button onclick="finishOrder(true)" class="w-1/2 bg-moon-800 text-white py-2.5 rounded-lg font-bold hover:bg-moon-900">Sí, Generar Factura</button>
+                <button onclick="finishOrder(false)" class="w-1/2 bg-gray-200 text-gray-700 py-2.5 rounded-lg font-bold hover:bg-gray-300">No, Solo Enviar Resumen</button>
+            </div>
+            <div id="qrcode-hidden" class="hidden"></div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const initialProducts = [
+            { id: 1, name: "Cuaderno Punteado Bullet Journal A5", category: "Libretas y cuadernos", price: 280, stock: 8, threshold: 3, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80", likes: 14, rating: 5, reviews: ["¡Excelente grosor de hoja!", "Ideal para acuarela leve."], qa: [{q: "¿De cuántos gramos son las hojas?", a: "Son hojas de 120g/m²."}] },
+            { id: 2, name: "Libreta Pequeña Pocket Rayada", category: "Libretas y cuadernos", price: 95, stock: 2, threshold: 3, image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=500&q=80", likes: 8, rating: 4, reviews: ["Muy práctica para traer en el bolso."], qa: [] },
+            { id: 3, name: "Agenda Semanal 2026 'Moon Dream'", category: "Agendas y planificadores", price: 340, stock: 12, threshold: 5, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=80", likes: 25, rating: 5, reviews: ["Súper completa y las hojas son suaves."], qa: [] },
+            { id: 4, name: "Calendario de Escritorio Ilustrado", category: "Agendas y planificadores", price: 190, stock: 0, threshold: 3, image: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=500&q=80", likes: 5, rating: 4, reviews: [], qa: [] },
+            { id: 5, name: "Set de Plumas de Gel Pastel (12 pzs)", category: "Plumas y lápices", price: 210, stock: 15, threshold: 4, image: "https://images.unsplash.com/photo-1585336261026-8f5786392b56?auto=format&fit=crop&w=500&q=80", likes: 30, rating: 5, reviews: ["No se traspasan nada."], qa: [{q: "¿Vienen colores repetidos?", a: "No, son 12 tonos distintos pastel."}] },
+            { id: 6, name: "Portaminas Metálico 0.5mm + Repuestos", category: "Plumas y lápices", price: 150, stock: 6, threshold: 2, image: "https://images.unsplash.com/photo-1569388330292-79cc1ec67270?auto=format&fit=crop&w=500&q=80", likes: 11, rating: 5, reviews: [], qa: [] },
+            { id: 7, name: "Resaltadores Colores Pastel (Set de 6)", category: "Resaltadores", price: 165, stock: 3, threshold: 3, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 19, rating: 4, reviews: ["Los tonos son muy suaves y bonitos."], qa: [] },
+            { id: 8, name: "Set Washi Tapes Botánicas (5 rollos)", category: "Stickers y washi tape", price: 130, stock: 20, threshold: 5, image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=500&q=80", likes: 17, rating: 5, reviews: [], qa: [] },
+            { id: 9, name: "Kit Escolar / Estudio Completo Moon", category: "Paquetes escolares", price: 590, stock: 4, threshold: 2, image: "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=500&q=80", likes: 42, rating: 5, reviews: ["¡Increíble para regalo!"], qa: [] }
+        ];
+
+        let products = JSON.parse(localStorage.getItem('pm_products')) || initialProducts;
+        let currentUser = JSON.parse(localStorage.getItem('pm_user')) || null;
+        let cart = JSON.parse(localStorage.getItem('pm_cart')) || [];
+        let favorites = JSON.parse(localStorage.getItem('pm_favs')) || [];
+        let allOrders = JSON.parse(localStorage.getItem('pm_orders')) || [];
+        let lastCompletedOrder = null;
+
+        saveState();
+
+        function saveState() {
+            localStorage.setItem('pm_products', JSON.stringify(products));
+            localStorage.setItem('pm_user', JSON.stringify(currentUser));
+            localStorage.setItem('pm_cart', JSON.stringify(cart));
+            localStorage.setItem('pm_favs', JSON.stringify(favorites));
+            localStorage.setItem('pm_orders', JSON.stringify(allOrders));
+            updateHeaderNav();
+        }
+
+        // Botón para limpiar todo y volver al estado original
+        function resetStoreData() {
+            if (confirm("¿Estás seguro de restaurar la tienda? Esto borrará reseñas de prueba, productos agregados y restablecerá el inventario original.")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function showSection(secId) {
+            const sections = ['catalog', 'product-detail', 'favorites', 'login', 'admin', 'checkout', 'policies'];
+            sections.forEach(id => {
+                const el = document.getElementById(`sec-${id}`);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById(`sec-${secId}`).classList.remove('hidden');
+            window.scrollTo(0, 0);
+
+            if (secId === 'catalog') renderCatalog(products);
+            if (secId === 'favorites') renderFavorites();
+            if (secId === 'admin') renderAdminDashboard();
+        }
+
+        function updateHeaderNav() {
+            const userNav = document.getElementById('user-nav');
+            document.getElementById('cart-count').innerText = cart.reduce((acc, i) => acc + i.qty, 0);
+            document.getElementById('fav-count').innerText = favorites.length;
+
+            if (currentUser) {
+                userNav.innerHTML = `
+                    <span class="text-sm font-medium text-gray-700"><i class="fa-solid fa-user text-moon-500"></i> ${currentUser.name}</span>
+                    ${currentUser.role === 'admin' ? `<button onclick="showSection('admin')" class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded hover:bg-amber-200">Panel Admin</button>` : ''}
+                    <button onclick="handleLogout()" class="text-xs text-red-600 hover:underline">Salir</button>
+                `;
+            } else {
+                userNav.innerHTML = `<button onclick="showSection('login')" class="bg-moon-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-moon-900 transition">Iniciar Sesión</button>`;
+            }
+        }
+
+        function renderCatalog(items, targetGridId = 'product-grid') {
+            const grid = document.getElementById(targetGridId);
+            if (!items.length) {
+                grid.innerHTML = `<p class="col-span-full text-gray-400 text-center py-10">No hay productos disponibles.</p>`;
+                return;
+            }
+
+            grid.innerHTML = items.map(p => {
+                const isFav = favorites.includes(p.id);
+                const isOut = p.stock === 0;
+                const isLow = !isOut && p.stock <= p.threshold;
+
+                return `
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-moon-100 flex flex-col justify-between relative group">
+                    <div>
+                        <div class="relative overflow-hidden rounded-xl h-48 bg-gray-100 mb-3">
+                            <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80'">
+                            <button onclick="toggleFavorite(${p.id})" class="absolute top-2 right-2 bg-white/90 p-2 rounded-full text-rose-500 hover:bg-white shadow-sm transition">
+                                <i class="fa-${isFav ? 'solid' : 'regular'} fa-heart"></i>
+                            </button>
+                            
+                            ${isOut ? `<span class="absolute bottom-2 left-2 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow">Agotado</span>` : ''}
+                            ${isLow ? `<span class="absolute bottom-2 left-2 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow">¡Pocas piezas! (${p.stock})</span>` : ''}
+                        </div>
+                        <span class="text-xs text-gray-400 uppercase font-semibold">${p.category}</span>
+                        <h3 class="font-bold text-gray-800 cursor-pointer hover:text-moon-500" onclick="openProductDetail(${p.id})">${p.name}</h3>
+                        <div class="flex items-center space-x-1 text-amber-400 text-xs mt-1">
+                            ${'★'.repeat(p.rating)}${'☆'.repeat(5-p.rating)}
+                            <span class="text-gray-400 ml-1">(${p.likes} likes)</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center border-t pt-3">
+                        <span class="font-bold text-lg text-moon-800">$${p.price} MXN</span>
+                        <button onclick="addToCart(${p.id})" ${isOut ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg text-sm font-medium transition ${isOut ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-moon-800 text-white hover:bg-moon-900'}">
+                            ${isOut ? 'Sin Stock' : '<i class="fa-solid fa-plus"></i> Agregar'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const recBox = document.getElementById('recommendations-box');
+            if (cart.length > 0 && targetGridId === 'product-grid') {
+                recBox.classList.remove('hidden');
+                const lastCat = cart[cart.length - 1].category;
+                const recs = products.filter(p => p.category === lastCat && !cart.find(c => c.id === p.id)).slice(0, 3);
+                document.getElementById('recommendations-list').innerHTML = recs.map(r => `
+                    <div class="bg-white p-3 rounded-lg border text-sm flex justify-between items-center shadow-sm">
+                        <span>${r.name} - <b>$${r.price} MXN</b></span>
+                        <button onclick="addToCart(${r.id})" class="text-moon-700 font-bold hover:underline">Agregar</button>
+                    </div>
+                `).join('');
+            } else if (targetGridId === 'product-grid') {
+                recBox.classList.add('hidden');
+            }
+        }
+
+        function filterCategory(cat) {
+            if(cat === 'todos') renderCatalog(products);
+            else renderCatalog(products.filter(p => p.category === cat));
+        }
+
+        function openProductDetail(id) {
+            const p = products.find(x => x.id === id);
+            const content = document.getElementById('product-detail-content');
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <img src="${p.image}" class="w-full h-80 object-cover rounded-2xl shadow-sm" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80'">
+                    <div class="space-y-4">
+                        <span class="text-xs text-gray-400 uppercase font-semibold">${p.category}</span>
+                        <h2 class="text-3xl font-bold text-moon-800">${p.name}</h2>
+                        <p class="text-2xl font-bold text-moon-500">$${p.price} MXN</p>
+                        <p class="text-sm text-gray-600">Existencias disponibles: <b>${p.stock} unidades</b></p>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="likeProduct(${p.id})" class="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg text-sm font-bold"><i class="fa-solid fa-thumbs-up"></i> Me gusta (${p.likes})</button>
+                            <button onclick="addToCart(${p.id})" ${p.stock === 0 ? 'disabled' : ''} class="px-6 py-2 rounded-lg font-bold ${p.stock === 0 ? 'bg-gray-300 text-gray-500' : 'bg-moon-800 text-white hover:bg-moon-900'}">
+                                ${p.stock === 0 ? 'Producto Agotado' : 'Agregar al Carrito'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 border-t pt-8">
+                    <div>
+                        <h3 class="font-bold text-lg text-moon-800 mb-3">Reseñas y Valoraciones</h3>
+                        <div class="space-y-2 mb-4">
+                            ${p.reviews.length ? p.reviews.map(r => `<div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">"${r}"</div>`).join('') : '<p class="text-sm text-gray-400">Aún no hay reseñas.</p>'}
+                        </div>
+                        <form onsubmit="addReview(event, ${p.id})" class="flex gap-2">
+                            <input type="text" id="review-input" placeholder="Escribe tu opinión..." required class="flex-grow p-2 border rounded-lg text-sm">
+                            <button type="submit" class="bg-moon-800 text-white px-4 py-2 rounded-lg text-sm font-bold">Publicar</button>
+                        </form>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-lg text-moon-800 mb-3">Preguntas de Clientes</h3>
+                        <div class="space-y-2 mb-4">
+                            ${p.qa.length ? p.qa.map(q => `
+                                <div class="bg-gray-50 p-3 rounded-lg text-sm space-y-1 border">
+                                    <p class="font-bold text-gray-800"><i class="fa-regular fa-circle-question text-moon-500"></i> ${q.q}</p>
+                                    <p class="text-moon-700 pl-4"><b>Respuesta:</b> ${q.a}</p>
+                                </div>
+                            `).join('') : '<p class="text-sm text-gray-400">Haz una pregunta sobre este producto.</p>'}
+                        </div>
+                        <form onsubmit="addQuestion(event, ${p.id})" class="flex gap-2">
+                            <input type="text" id="question-input" placeholder="¿Tienes alguna duda?" required class="flex-grow p-2 border rounded-lg text-sm">
+                            <button type="submit" class="bg-moon-800 text-white px-4 py-2 rounded-lg text-sm font-bold">Preguntar</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            showSection('product-detail');
+        }
+
+        function likeProduct(id) {
+            const p = products.find(x => x.id === id);
+            p.likes++;
+            saveState();
+            openProductDetail(id);
+        }
+
+        function addReview(e, id) {
+            e.preventDefault();
+            const input = document.getElementById('review-input');
+            const p = products.find(x => x.id === id);
+            p.reviews.push(input.value);
+            saveState();
+            openProductDetail(id);
+        }
+
+        function addQuestion(e, id) {
+            e.preventDefault();
+            const input = document.getElementById('question-input');
+            const p = products.find(x => x.id === id);
+            p.qa.push({ q: input.value, a: "Pendiente de respuesta por el administrador." });
+            saveState();
+            openProductDetail(id);
+        }
+
+        function toggleFavorite(id) {
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(x => x !== id);
+            } else {
+                favorites.push(id);
+            }
+            saveState();
+            renderCatalog(products);
+            if (!document.getElementById('sec-favorites').classList.contains('hidden')) {
+                renderFavorites();
+            }
+        }
+
+        function renderFavorites() {
+            const favItems = products.filter(p => favorites.includes(p.id));
+            renderCatalog(favItems, 'favorites-grid');
+        }
+
+        function addToCart(id) {
+            const p = products.find(x => x.id === id);
+            if (p.stock === 0) {
+                alert("Este producto está agotado.");
+                return;
+            }
+            const inCart = cart.find(x => x.id === id);
+            if (inCart) {
+                if (inCart.qty < p.stock) inCart.qty++;
+                else alert("Has alcanzado el límite de stock disponible.");
+            } else {
+                cart.push({ ...p, qty: 1 });
+            }
+            saveState();
+            renderCartModal();
+        }
+
+        function toggleCartModal() {
+            document.getElementById('modal-cart').classList.toggle('hidden');
+            renderCartModal();
+        }
+
+        function renderCartModal() {
+            const list = document.getElementById('cart-items-list');
+            list.innerHTML = cart.map(item => `
+                <div class="flex justify-between items-center border-b pb-3 text-sm">
+                    <div>
+                        <h4 class="font-bold text-gray-800">${item.name}</h4>
+                        <span class="text-gray-500">$${item.price} MXN c/u</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-gray-200 rounded font-bold">-</button>
+                        <span>${item.qty}</span>
+                        <button onclick="changeQty(${item.id}, 1)" class="px-2 py-1 bg-gray-200 rounded font-bold">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            document.getElementById('cart-total-modal').innerText = `$${subtotal} MXN`;
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(x => x.id === id);
+            const p = products.find(x => x.id === id);
+            item.qty += delta;
+            if (item.qty > p.stock) {
+                item.qty = p.stock;
+                alert("Límite de stock disponible alcanzado.");
+            }
+            if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
+            saveState();
+            renderCartModal();
+        }
+
+        function proceedToCheckout() {
+            if (!currentUser) {
+                toggleCartModal();
+                alert("Debes iniciar sesión para realizar una compra.");
+                showSection('login');
+                return;
+            }
+            if (!cart.length) {
+                alert("El carrito está vacío.");
+                return;
+            }
+            toggleCartModal();
+            const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            document.getElementById('checkout-subtotal').innerText = `$${subtotal} MXN`;
+            document.getElementById('checkout-total').innerText = `$${subtotal + 99} MXN`;
+            showSection('checkout');
+        }
+
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('form-login').classList.remove('hidden');
+                document.getElementById('form-register').classList.add('hidden');
+                document.getElementById('tab-login-btn').className = "w-1/2 py-2 font-bold text-moon-800 border-b-2 border-moon-800";
+                document.getElementById('tab-register-btn').className = "w-1/2 py-2 text-gray-500 font-bold border-b-2 border-transparent";
+            } else {
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-register').classList.remove('hidden');
+                document.getElementById('tab-register-btn').className = "w-1/2 py-2 font-bold text-moon-800 border-b-2 border-moon-800";
+                document.getElementById('tab-login-btn').className = "w-1/2 py-2 text-gray-500 font-bold border-b-2 border-transparent";
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+
+            if (email === 'admin@papermoon.com' && pass === 'admin123') {
+                currentUser = { name: "Administrador Paper Moon", email: email, role: "admin" };
+            } else {
+                currentUser = { name: email.split('@')[0], email: email, role: "cliente" };
+            }
+            saveState();
+            alert(`¡Sesión iniciada como ${currentUser.name}!`);
+            showSection('catalog');
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            currentUser = { name: name, email: email, role: "cliente" };
+            saveState();
+            alert("¡Cuenta creada exitosamente!");
+            showSection('catalog');
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            saveState();
+            showSection('catalog');
+        }
+
+        function showRecoveryModal() { document.getElementById('modal-recovery').classList.remove('hidden'); }
+        function closeRecoveryModal() { document.getElementById('modal-recovery').classList.add('hidden'); }
+
+        function handleRecoverySubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('recovery-email').value;
+            alert(`Se ha enviado un correo electrónico con el enlace de recuperación a: ${email}`);
+            closeRecoveryModal();
+        }
+
+        function togglePaymentFields(type) {
+            const cardFields = document.getElementById('card-fields');
+            if (type === 'card') cardFields.classList.remove('hidden');
+            else cardFields.classList.add('hidden');
+        }
+
+        function handleCheckoutSubmit(e) {
+            e.preventDefault();
+            const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            lastCompletedOrder = {
+                id: "PM-" + Math.floor(100000 + Math.random() * 900000),
+                client: currentUser,
+                items: [...cart],
+                total: subtotal + 99,
+                date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()
+            };
+
+            allOrders.unshift(lastCompletedOrder);
+
+            cart.forEach(c => {
+                const p = products.find(x => x.id === c.id);
+                if (p) p.stock = Math.max(0, p.stock - c.qty);
+            });
+
+            cart = [];
+            saveState();
+
+            document.getElementById('modal-invoice-prompt').classList.remove('hidden');
+        }
+
+        function finishOrder(wantInvoice) {
+            document.getElementById('modal-invoice-prompt').classList.add('hidden');
+
+            if (wantInvoice) {
+                generatePDFInvoice(lastCompletedOrder);
+            } else {
+                alert(`¡Gracias por tu compra! Se ha enviado el resumen detallado de tu pedido al correo: ${lastCompletedOrder.client.email}`);
+            }
+            showSection('catalog');
+        }
+
+        function generatePDFInvoice(order) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const qrDiv = document.getElementById('qrcode-hidden');
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
+                text: `https://papermoon.com/factura/${order.id}`,
+                width: 80,
+                height: 80
+            });
+
+            setTimeout(() => {
+                const qrCanvas = qrDiv.querySelector('canvas');
+                const qrDataUrl = qrCanvas.toDataURL("image/png");
+
+                doc.setFontSize(20);
+                doc.text("PAPER MOON - FACTURA ELECTRÓNICA", 14, 20);
+                doc.setFontSize(10);
+                doc.text(`Folio Fiscal: ${order.id}`, 14, 28);
+                doc.text(`Fecha: ${order.date}`, 14, 34);
+                doc.text(`Cliente: ${order.client.name} (${order.client.email})`, 14, 40);
+
+                doc.text("---------------------------------------------------------------------------------", 14, 48);
+                let y = 56;
+                order.items.forEach(item => {
+                    doc.text(`${item.name} x${item.qty} - $${item.price * item.qty} MXN`, 14, y);
+                    y += 8;
+                });
+                doc.text("---------------------------------------------------------------------------------", 14, y);
+                doc.setFontSize(12);
+                doc.text(`Total Facturado: $${order.total} MXN`, 14, y + 10);
+
+                doc.addImage(qrDataUrl, 'PNG', 140, 20, 45, 45);
+                doc.setFontSize(8);
+                doc.text("Código QR de Validación Fiscal", 140, 70);
+
+                doc.save(`Factura_Paper_Moon_${order.id}.pdf`);
+                alert("Factura en PDF con código QR descargada.");
+            }, 300);
+        }
+
+        // === PANEL DE ADMINISTRADOR ===
+        function renderAdminDashboard() {
+            renderAdminStockTable();
+            renderAdminOrders();
+            renderAdminQA();
+        }
+
+        function renderAdminStockTable() {
+            const tbody = document.getElementById('admin-stock-table');
+            tbody.innerHTML = products.map(p => {
+                const isOut = p.stock === 0;
+                const isLow = !isOut && p.stock <= p.threshold;
+                return `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-4 font-bold text-gray-800 flex items-center gap-3">
+                        <img src="${p.image}" class="w-10 h-10 rounded object-cover" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80'">
+                        ${p.name}
+                    </td>
+                    <td class="p-4">${p.category}</td>
+                    <td class="p-4">$${p.price} MXN</td>
+                    <td class="p-4 font-bold ${isOut ? 'text-red-600' : ''}">${p.stock}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded text-xs font-bold ${isOut ? 'bg-red-100 text-red-700' : isLow ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}">
+                            ${isOut ? 'Agotado' : isLow ? 'Stock Bajo' : 'Disponible'}
+                        </span>
+                    </td>
+                    <td class="p-4 space-x-2">
+                        <button onclick="restockPrompt(${p.id})" class="bg-moon-800 text-white px-3 py-1 rounded text-xs font-bold hover:bg-moon-900"><i class="fa-solid fa-arrows-rotate"></i> Stock</button>
+                        <button onclick="deleteProduct(${p.id})" class="bg-red-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-red-700"><i class="fa-solid fa-trash"></i> Eliminar</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function restockPrompt(id) {
+            const p = products.find(x => x.id === id);
+            const val = prompt(`Ingresa la nueva cantidad de inventario para "${p.name}":`, p.stock);
+            if (val !== null) {
+                p.stock = parseInt(val) || 0;
+                saveState();
+                renderAdminDashboard();
+            }
+        }
+
+        // Agregar producto con opción de Link de Imagen
+        function addNewProductPrompt() {
+            const name = prompt("Nombre del nuevo producto:");
+            if(!name) return;
+            const category = prompt("Categoría (Libretas y cuadernos, Agendas y planificadores, Plumas y lápices, Resaltadores, Stickers y washi tape, Paquetes escolares):", "Libretas y cuadernos");
+            const price = parseFloat(prompt("Precio en MXN:", "150")) || 100;
+            const stock = parseInt(prompt("Cantidad inicial en stock:", "10")) || 10;
+            const image = prompt("Link de la imagen del producto (URL):", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80");
+
+            products.push({
+                id: Date.now(),
+                name, category, price, stock,
+                threshold: 3,
+                image: image || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80",
+                likes: 0, rating: 5, reviews: [], qa: []
+            });
+            saveState();
+            renderAdminDashboard();
+            alert("¡Producto agregado exitosamente!");
+        }
+
+        // Función para eliminar productos
+        function deleteProduct(id) {
+            if (confirm("¿Estás seguro de que deseas eliminar este producto de la tienda?")) {
+                products = products.filter(x => x.id !== id);
+                // También quitarlo de favoritos o carrito si estaba ahí
+                favorites = favorites.filter(favId => favId !== id);
+                cart = cart.filter(item => item.id !== id);
+                saveState();
+                renderAdminDashboard();
+            }
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById('admin-orders-list');
+            if (!allOrders.length) {
+                container.innerHTML = `<p class="text-sm text-gray-400">Aún no se han registrado compras en la tienda.</p>`;
+                return;
+            }
+
+            container.innerHTML = allOrders.map(o => `
+                <div class="border rounded-xl p-4 bg-gray-50 space-y-2 text-sm">
+                    <div class="flex justify-between font-bold text-moon-800">
+                        <span>Orden: ${o.id} - Cliente: ${o.client.name} (${o.client.email})</span>
+                        <span>${o.date}</span>
+                    </div>
+                    <div class="text-gray-600">
+                        <b>Artículos comprados:</b> ${o.items.map(i => `${i.name} (x${i.qty})`).join(', ')}
+                    </div>
+                    <div class="font-bold text-gray-800">
+                        Total cobrado: $${o.total} MXN
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAdminQA() {
+            const container = document.getElementById('admin-qa-list');
+            let pendingQA = [];
+
+            products.forEach(p => {
+                p.qa.forEach((qItem, idx) => {
+                    pendingQA.push({ productId: p.id, productName: p.name, qIndex: idx, q: qItem.q, a: qItem.a });
+                });
+            });
+
+            if (!pendingQA.length) {
+                container.innerHTML = `<p class="text-sm text-gray-400">No hay preguntas registradas en ningún producto.</p>`;
+                return;
+            }
+
+            container.innerHTML = pendingQA.map(item => `
+                <div class="border p-4 rounded-xl space-y-2 text-sm bg-white">
+                    <p class="text-xs text-gray-400 font-bold uppercase">Producto: ${item.productName}</p>
+                    <p class="font-bold text-gray-800"><i class="fa-regular fa-comment"></i> Pregunta: ${item.q}</p>
+                    <p class="text-moon-700"><b>Respuesta actual:</b> ${item.a}</p>
+                    <button onclick="answerQuestionPrompt(${item.productId}, ${item.qIndex})" class="text-xs bg-moon-800 text-white px-3 py-1 rounded font-bold hover:bg-moon-900">Responder / Editar Respuesta</button>
+                </div>
+            `).join('');
+        }
+
+        function answerQuestionPrompt(productId, qIndex) {
+            const p = products.find(x => x.id === productId);
+            const ans = prompt(`Escribe la respuesta oficial para la pregunta: "${p.qa[qIndex].q}"`, p.qa[qIndex].a);
+            if (ans !== null) {
+                p.qa[qIndex].a = ans;
+                saveState();
+                renderAdminDashboard();
+            }
+        }
+
+        showSection('catalog');
+    </script>
+</body>
+</html>
