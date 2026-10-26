@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paper Moon | Papelería & Bonetería</title>
+    <title>Paper Moon | Papelería</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome icons CDN -->
@@ -65,6 +65,11 @@
         </div>
     </nav>
 
+    <!-- TOAST NOTIFICACIÓN ("Se agregó al carrito") -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-moon-800 text-white px-5 py-3 rounded-xl shadow-xl transition-all duration-300 transform translate-y-20 opacity-0 z-50 font-medium text-sm flex items-center gap-2">
+        <i class="fa-solid fa-check-circle text-amber-400"></i> Se agregó al carrito
+    </div>
+
     <!-- CONTENIDO PRINCIPAL -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
 
@@ -75,21 +80,29 @@
                     <h1 class="text-3xl font-bold text-moon-800">Papelería bonita y funcional</h1>
                     <p class="text-gray-500 mt-1">Encuentra libretas, agendas, organizadores y más para acompañar tus ideas.</p>
                 </div>
-                <!-- Filtros -->
-                <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                    <button onclick="filterCategory('todos')" class="px-4 py-2 rounded-full text-sm font-medium bg-moon-800 text-white shadow-sm hover:opacity-95 transition whitespace-nowrap">Todos</button>
-                    <button onclick="filterCategory('Libretas y cuadernos')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Libretas y cuadernos</button>
-                    <button onclick="filterCategory('Agendas y planificadores')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Agendas</button>
-                    <button onclick="filterCategory('Plumas y lápices')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Plumas y lápices</button>
-                    <button onclick="filterCategory('Resaltadores')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Resaltadores</button>
-                    <button onclick="filterCategory('Stickers y washi tape')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Stickers & Washi</button>
-                    <button onclick="filterCategory('Paquetes escolares')" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-moon-100 transition whitespace-nowrap">Kits escolares</button>
+                <!-- Buscador -->
+                <div class="w-full md:w-72">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="search-input" oninput="handleSearch(event)" placeholder="Buscar productos..." class="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:ring-2 focus:ring-moon-500 outline-none">
+                    </div>
                 </div>
+            </div>
+
+            <!-- Filtros por Categoría -->
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterCategory('todos')" class="px-4 py-2 rounded-full text-sm font-medium bg-moon-800 text-white shadow-sm hover:opacity-95 transition whitespace-nowrap">Todos</button>
+                <button onclick="filterCategory('Libretas y cuadernos')" class="px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-moon-100 border transition whitespace-nowrap">Libretas y cuadernos</button>
+                <button onclick="filterCategory('Agendas y planificadores')" class="px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-moon-100 border transition whitespace-nowrap">Agendas</button>
+                <button onclick="filterCategory('Plumas y lápices')" class="px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-moon-100 border transition whitespace-nowrap">Plumas y lápices</button>
+                <button onclick="filterCategory('Resaltadores')" class="px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-moon-100 border transition whitespace-nowrap">Resaltadores</button>
+                <button onclick="filterCategory('Stickers y washi tape')" class="px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-moon-100 border transition whitespace-nowrap">Stickers & Washi</button>
+                <button onclick="filterCategory('Paquetes escolares')" class="px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-moon-100 border transition whitespace-nowrap">Kits escolares</button>
             </div>
 
             <!-- Recomendaciones Personalizadas -->
             <div id="recommendations-box" class="bg-amber-50 border border-amber-200 rounded-xl p-4 hidden">
-                <h3 class="font-bold text-amber-900 mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Recomendado para ti (Basado en usuarios que compraron artículos similares)</h3>
+                <h3 class="font-bold text-amber-900 mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Recomendado para ti (Basado en compras similares)</h3>
                 <div id="recommendations-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
             </div>
 
@@ -265,7 +278,7 @@
         </section>
     </main>
 
-    <!-- FOOTER Y REDES SOCIALES (CON ÍCONO X / TWITTER CORREGIDO) -->
+    <!-- FOOTER Y REDES SOCIALES -->
     <footer class="bg-moon-800 text-white py-10 mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-gray-700 pb-6">
@@ -274,12 +287,10 @@
                     <p class="text-gray-400 text-sm">Tu papelería favorita en línea.</p>
                 </div>
                 
-                <!-- Redes Sociales (Incluyendo X / Twitter con SVG garantizado) -->
                 <div class="flex items-center space-x-6 text-xl">
                     <a href="https://instagram.com" target="_blank" class="hover:text-amber-400 transition" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
                     <a href="https://facebook.com" target="_blank" class="hover:text-amber-400 transition" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
                     <a href="https://whatsapp.com" target="_blank" class="hover:text-amber-400 transition" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
-                    <!-- Ícono X (Twitter) garantizado mediante SVG -->
                     <a href="https://x.com" target="_blank" class="hover:text-amber-400 transition flex items-center" title="X (Twitter)">
                         <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                     </a>
@@ -342,16 +353,59 @@
 
     <!-- JAVASCRIPT -->
     <script>
+        // Lista con imágenes estables usando enlaces directos de alta disponibilidad
         const initialProducts = [
+            // Libretas y cuadernos
             { id: 1, name: "Cuaderno Punteado Bullet Journal A5", category: "Libretas y cuadernos", price: 280, stock: 8, threshold: 3, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80", likes: 14, rating: 5, reviews: ["¡Excelente grosor de hoja!", "Ideal para acuarela leve."], qa: [{q: "¿De cuántos gramos son las hojas?", a: "Son hojas de 120g/m²."}] },
-            { id: 2, name: "Libreta Pequeña Pocket Rayada", category: "Libretas y cuadernos", price: 95, stock: 2, threshold: 3, image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=500&q=80", likes: 8, rating: 4, reviews: ["Muy práctica para traer en el bolso."], qa: [] },
-            { id: 3, name: "Agenda Semanal 2026 'Moon Dream'", category: "Agendas y planificadores", price: 340, stock: 12, threshold: 5, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=80", likes: 25, rating: 5, reviews: ["Súper completa y las hojas son suaves."], qa: [] },
-            { id: 4, name: "Calendario de Escritorio Ilustrado", category: "Agendas y planificadores", price: 190, stock: 0, threshold: 3, image: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=500&q=80", likes: 5, rating: 4, reviews: [], qa: [] },
-            { id: 5, name: "Set de Plumas de Gel Pastel (12 pzs)", category: "Plumas y lápices", price: 210, stock: 15, threshold: 4, image: "https://images.unsplash.com/photo-1585336261026-8f5786392b56?auto=format&fit=crop&w=500&q=80", likes: 30, rating: 5, reviews: ["No se traspasan nada."], qa: [{q: "¿Vienen colores repetidos?", a: "No, son 12 tonos distintos pastel."}] },
-            { id: 6, name: "Portaminas Metálico 0.5mm + Repuestos", category: "Plumas y lápices", price: 150, stock: 6, threshold: 2, image: "https://images.unsplash.com/photo-1569388330292-79cc1ec67270?auto=format&fit=crop&w=500&q=80", likes: 11, rating: 5, reviews: [], qa: [] },
-            { id: 7, name: "Resaltadores Colores Pastel (Set de 6)", category: "Resaltadores", price: 165, stock: 3, threshold: 3, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 19, rating: 4, reviews: ["Los tonos son muy suaves y bonitos."], qa: [] },
-            { id: 8, name: "Set Washi Tapes Botánicas (5 rollos)", category: "Stickers y washi tape", price: 130, stock: 20, threshold: 5, image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=500&q=80", likes: 17, rating: 5, reviews: [], qa: [] },
-            { id: 9, name: "Kit Escolar / Estudio Completo Moon", category: "Paquetes escolares", price: 590, stock: 4, threshold: 2, image: "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=500&q=80", likes: 42, rating: 5, reviews: ["¡Increíble para regalo!"], qa: [] }
+            { id: 2, name: "Libreta Pequeña Pocket Rayada", category: "Libretas y cuadernos", price: 95, stock: 5, threshold: 3, image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=500&q=80", likes: 8, rating: 4, reviews: ["Muy práctica para traer en el bolso."], qa: [] },
+            { id: 3, name: "Cuaderno Profesional de Raya Tapa Dura", category: "Libretas y cuadernos", price: 120, stock: 15, threshold: 4, image: "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=500&q=80", likes: 12, rating: 5, reviews: ["Resistente y bonito diseño."], qa: [] },
+            { id: 4, name: "Libreta de Dibujo Sketchbook 200g", category: "Libretas y cuadernos", price: 310, stock: 7, threshold: 3, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=500&q=80", likes: 22, rating: 5, reviews: ["Perfecto para lápiz y tinta."], qa: [] },
+            { id: 5, name: "Cuaderno Curiculado Cuadros Chica", category: "Libretas y cuadernos", price: 85, stock: 20, threshold: 5, image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=500&q=80", likes: 9, rating: 4, reviews: [], qa: [] },
+            { id: 6, name: "Libreta Ecológica de Bambú A5", category: "Libretas y cuadernos", price: 240, stock: 10, threshold: 3, image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=500&q=80", likes: 31, rating: 5, reviews: ["Me encanta que sea sustentable."], qa: [] },
+            { id: 7, name: "Cuaderno de Tapa de Cuero Vintage", category: "Libretas y cuadernos", price: 350, stock: 4, threshold: 2, image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=500&q=80", likes: 18, rating: 5, reviews: [], qa: [] },
+            { id: 8, name: "Libreta Espiralada con Pestañas", category: "Libretas y cuadernos", price: 175, stock: 14, threshold: 4, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=80", likes: 16, rating: 4, reviews: [], qa: [] },
+
+            // Agendas y planificadores
+            { id: 9, name: "Agenda Semanal 2026 'Moon Dream'", category: "Agendas y planificadores", price: 340, stock: 12, threshold: 5, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=80", likes: 25, rating: 5, reviews: ["Súper completa y las hojas son suaves."], qa: [] },
+            { id: 10, name: "Calendario de Escritorio Ilustrado", category: "Agendas y planificadores", price: 190, stock: 6, threshold: 3, image: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=500&q=80", likes: 5, rating: 4, reviews: [], qa: [] },
+            { id: 11, name: "Organizador de Tareas Semanal de Pared", category: "Agendas y planificadores", price: 220, stock: 8, threshold: 3, image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=500&q=80", likes: 19, rating: 5, reviews: ["Muy útil para la oficina o cuarto."], qa: [] },
+            { id: 12, name: "Planner Diario sin Fechas 'Focus'", category: "Agendas y planificadores", price: 160, stock: 11, threshold: 3, image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=500&q=80", likes: 27, rating: 5, reviews: [], qa: [] },
+            { id: 13, name: "Planificador Mensual Magnético para Refri", category: "Agendas y planificadores", price: 180, stock: 9, threshold: 3, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=80", likes: 14, rating: 4, reviews: [], qa: [] },
+            { id: 14, name: "Agenda Ejecutiva Diaria 2026", category: "Agendas y planificadores", price: 420, stock: 5, threshold: 2, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80", likes: 33, rating: 5, reviews: [], qa: [] },
+
+            // Plumas y lápices
+            { id: 15, name: "Set de Plumas de Gel Pastel (12 pzs)", category: "Plumas y lápices", price: 210, stock: 15, threshold: 4, image: "https://images.unsplash.com/photo-1585336261026-8f5786392b56?auto=format&fit=crop&w=500&q=80", likes: 30, rating: 5, reviews: ["No se traspasan nada."], qa: [{q: "¿Vienen colores repetidos?", a: "No, son 12 tonos distintos pastel."}] },
+            { id: 16, name: "Portaminas Metálico 0.5mm + Repuestos", category: "Plumas y lápices", price: 150, stock: 6, threshold: 2, image: "https://images.unsplash.com/photo-1569388330292-79cc1ec67270?auto=format&fit=crop&w=500&q=80", likes: 11, rating: 5, reviews: [], qa: [] },
+            { id: 17, name: "Bolígrafo Fino de Tinta Negra 0.38mm", category: "Plumas y lápices", price: 35, stock: 40, threshold: 10, image: "https://images.unsplash.com/photo-1585336261026-8f5786392b56?auto=format&fit=crop&w=500&q=80", likes: 45, rating: 5, reviews: ["Escribe suavecísimo."], qa: [] },
+            { id: 18, name: "Lápices de Grafito B HB y 2B (Set de 4)", category: "Plumas y lápices", price: 65, stock: 25, threshold: 5, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 13, rating: 4, reviews: [], qa: [] },
+            { id: 19, name: "Pluma Estilográfica Clásica Recargable", category: "Plumas y lápices", price: 290, stock: 8, threshold: 3, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=500&q=80", likes: 21, rating: 5, reviews: [], qa: [] },
+            { id: 20, name: "Set de Lápices de Colores Acuarelables (24 pzs)", category: "Plumas y lápices", price: 380, stock: 10, threshold: 3, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 50, rating: 5, reviews: [], qa: [] },
+            { id: 21, name: "Borrador de Migajón y Sacapuntas Metálico", category: "Plumas y lápices", price: 45, stock: 30, threshold: 8, image: "https://images.unsplash.com/photo-1569388330292-79cc1ec67270?auto=format&fit=crop&w=500&q=80", likes: 7, rating: 4, reviews: [], qa: [] },
+            { id: 22, name: "Plumas de Gel Metálicas Oro y Plata (Set 3)", category: "Plumas y lápices", price: 90, stock: 18, threshold: 4, image: "https://images.unsplash.com/photo-1585336261026-8f5786392b56?auto=format&fit=crop&w=500&q=80", likes: 22, rating: 5, reviews: [], qa: [] },
+
+            // Resaltadores
+            { id: 23, name: "Resaltadores Colores Pastel (Set de 6)", category: "Resaltadores", price: 165, stock: 13, threshold: 3, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 19, rating: 4, reviews: ["Los tonos son muy suaves y bonitos."], qa: [] },
+            { id: 24, name: "Marcadores Neón Brillantes (Set de 4)", category: "Resaltadores", price: 110, stock: 16, threshold: 4, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=500&q=80", likes: 15, rating: 4, reviews: [], qa: [] },
+            { id: 25, name: "Resaltadores Doble Punta (Punta fina y bisel)", category: "Resaltadores", price: 195, stock: 9, threshold: 3, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 29, rating: 5, reviews: [], qa: [] },
+            { id: 26, name: "Marcadores Metálicos para Apuntes Oscuros", category: "Resaltadores", price: 150, stock: 11, threshold: 3, image: "https://images.unsplash.com/photo-1585336261026-8f5786392b56?auto=format&fit=crop&w=500&q=80", likes: 24, rating: 5, reviews: [], qa: [] },
+            { id: 27, name: "Mini Resaltadores en Forma de Patita de Gato", category: "Resaltadores", price: 130, stock: 22, threshold: 5, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 41, rating: 5, reviews: [], qa: [] },
+
+            // Stickers y washi tape
+            { id: 28, name: "Set Washi Tapes Botánicas (5 rollos)", category: "Stickers y washi tape", price: 130, stock: 20, threshold: 5, image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80", likes: 17, rating: 5, reviews: ["Muy lindas para decorar apuntes."], qa: [] },
+            { id: 29, name: "Pack 100 Pegatinas Estéticas 'Celestial'", category: "Stickers y washi tape", price: 115, stock: 25, threshold: 5, image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=500&q=80", likes: 38, rating: 5, reviews: [], qa: [] },
+            { id: 30, name: "Washi Tape Holográfica de Estrellas", category: "Stickers y washi tape", price: 65, stock: 15, threshold: 3, image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80", likes: 23, rating: 4, reviews: [], qa: [] },
+            { id: 31, name: "Stickers Con Relieve Acolchados (Puffy)", category: "Stickers y washi tape", price: 55, stock: 19, threshold: 4, image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=500&q=80", likes: 16, rating: 4, reviews: [], qa: [] },
+            { id: 32, name: "Cintas Adhesivas Decorativas Pastel (Set 8)", category: "Stickers y washi tape", price: 170, stock: 12, threshold: 3, image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80", likes: 33, rating: 5, reviews: [], qa: [] },
+            { id: 33, name: "Pegatinas Vintage Estilo Periódico Antiguo", category: "Stickers y washi tape", price: 80, stock: 14, threshold: 3, image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=500&q=80", likes: 19, rating: 5, reviews: [], qa: [] },
+
+            // Paquetes escolares
+            { id: 34, name: "Kit Escolar / Estudio Completo Moon", category: "Paquetes escolares", price: 590, stock: 4, threshold: 2, image: "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=500&q=80", likes: 42, rating: 5, reviews: ["¡Increíble para regalo!"], qa: [] },
+            { id: 35, name: "Kit Bullet Journal Pro (Libreta + Plumas + Washi)", category: "Paquetes escolares", price: 680, stock: 6, threshold: 2, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=80", likes: 55, rating: 5, reviews: [], qa: [] },
+            { id: 36, name: "Kit Kawaii de Escritorio Escolar", category: "Paquetes escolares", price: 450, stock: 8, threshold: 3, image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=500&q=80", likes: 48, rating: 5, reviews: [], qa: [] },
+            { id: 37, name: "Kit de Regreso a Clases 'Estudiante 10'", category: "Paquetes escolares", price: 750, stock: 3, threshold: 2, image: "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=500&q=80", likes: 60, rating: 5, reviews: [], qa: [] },
+            { id: 38, name: "Kit de Arte y Dibujo Principiante", category: "Paquetes escolares", price: 510, stock: 5, threshold: 2, image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=500&q=80", likes: 37, rating: 4, reviews: [], qa: [] },
+            { id: 39, name: "Pack Organizador de Escritorio Minimalista", category: "Paquetes escolares", price: 390, stock: 7, threshold: 3, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=80", likes: 28, rating: 5, reviews: [], qa: [] },
+            { id: 40, name: "Kit de Notas Adhesivas y Post-it (10 bloques)", category: "Paquetes escolares", price: 210, stock: 16, threshold: 4, image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=500&q=80", likes: 39, rating: 5, reviews: [], qa: [] }
         ];
 
         let products = JSON.parse(localStorage.getItem('pm_products')) || initialProducts;
@@ -372,12 +426,21 @@
             updateHeaderNav();
         }
 
-        // Botón para limpiar todo y volver al estado original
         function resetStoreData() {
-            if (confirm("¿Estás seguro de restaurar la tienda? Esto borrará reseñas de prueba, productos agregados y restablecerá el inventario original.")) {
+            if (confirm("¿Estás seguro de restaurar la tienda? Esto restablecerá todos los productos e inventario original.")) {
                 localStorage.clear();
                 location.reload();
             }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
         }
 
         function showSection(secId) {
@@ -410,10 +473,19 @@
             }
         }
 
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.category.toLowerCase().includes(query)
+            );
+            renderCatalog(filtered);
+        }
+
         function renderCatalog(items, targetGridId = 'product-grid') {
             const grid = document.getElementById(targetGridId);
             if (!items.length) {
-                grid.innerHTML = `<p class="col-span-full text-gray-400 text-center py-10">No hay productos disponibles.</p>`;
+                grid.innerHTML = `<p class="col-span-full text-gray-400 text-center py-10">No se encontraron productos.</p>`;
                 return;
             }
 
@@ -467,6 +539,7 @@
         }
 
         function filterCategory(cat) {
+            document.getElementById('search-input').value = "";
             if(cat === 'todos') renderCatalog(products);
             else renderCatalog(products.filter(p => p.category === cat));
         }
@@ -580,7 +653,7 @@
                 cart.push({ ...p, qty: 1 });
             }
             saveState();
-            renderCartModal();
+            showToast();
         }
 
         function toggleCartModal() {
@@ -821,7 +894,6 @@
             }
         }
 
-        // Agregar producto con opción de Link de Imagen
         function addNewProductPrompt() {
             const name = prompt("Nombre del nuevo producto:");
             if(!name) return;
@@ -842,11 +914,9 @@
             alert("¡Producto agregado exitosamente!");
         }
 
-        // Función para eliminar productos
         function deleteProduct(id) {
             if (confirm("¿Estás seguro de que deseas eliminar este producto de la tienda?")) {
                 products = products.filter(x => x.id !== id);
-                // También quitarlo de favoritos o carrito si estaba ahí
                 favorites = favorites.filter(favId => favId !== id);
                 cart = cart.filter(item => item.id !== id);
                 saveState();
